@@ -17,22 +17,14 @@ int encode_file(const char *in_file_name, const char *out_file_name)
     }
     fseek(in, 0, SEEK_END);
     int size = ftell(in);
-    printf("%d\n", size);
     uint32_t code_point;
     CodeUnits code_unit;
     for (int i = 0; i < size; i++)
     {
         fscanf(in, "%" SCNx32, &code_point);
         printf("%" PRIx32, code_point);
-        if (encode(code_point, &code_unit) != 0)
-        {
-            printf("Не удалось закодировать число\n");
-        }
-        if (write_code_unit(out, &code_unit) == 0)
-        {
-            printf("Не удалось записать число\n");
-            return -1;
-        }
+        encode(code_point, &code_unit);
+        write_code_unit(out, &code_unit);
     }
     fclose(in);
     fclose(out);

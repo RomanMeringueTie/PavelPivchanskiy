@@ -55,12 +55,7 @@ uint32_t decode(const CodeUnits *code_unit)
 
 int read_next_code_unit(FILE *in, CodeUnits *code_units)
 {
-    int result = 0;
-    if (code_units->code[0] > 0x80)
-    {
-        result = fscanf(in, "%" SCNx32, code_units->code[0]);
-    }
-    return result;
+    return 0;
 }
 
 int write_code_unit(FILE *out, const CodeUnits *code_units)

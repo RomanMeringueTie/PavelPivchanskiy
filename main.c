@@ -16,12 +16,9 @@ int main(int argc, char *argv[])
         printf("Неверно написана команда кодирования/декодирования\n");
         return -1;
     }
-    char *command;
-    char *in_file_name;
-    char *out_file_name;
-    strcpy(command, argv[1]);
-    strcpy(in_file_name, argv[2]);
-    strcpy(out_file_name, argv[3]);
+    char *command = argv[1];
+    char *in_file_name = argv[2];
+    char *out_file_name = argv[3];
     if (!(strcmp(command, "encode")))
     {
         encode_file(in_file_name, out_file_name);
