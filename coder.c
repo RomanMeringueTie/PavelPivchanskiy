@@ -75,7 +75,7 @@ int read_next_code_unit(FILE *in, CodeUnits *code_units)
     {
         code_units->length = 2;
         fread(&(code_units->code[1]), 1, 1, in);
-        if (code_units->code[1] >= 0x80)
+        if (code_units->code[1] >= 0x80 && code_units->code[1] <= 0xBF)
         {
             printf("len = %ld\n", code_units->length);
             return 0;
@@ -90,7 +90,7 @@ int read_next_code_unit(FILE *in, CodeUnits *code_units)
         for (int i = 1; i < 3; i++)
         {
             fread(&(code_units->code[i]), 1, 1, in);
-            if (code_units->code[i] >= 0x80)
+            if (code_units->code[i] >= 0x80 && code_units->code[1] <= 0xBF)
                 count++;
         }
         if (count == 2)
@@ -108,7 +108,7 @@ int read_next_code_unit(FILE *in, CodeUnits *code_units)
         for (int i = 1; i < 4; i++)
         {
             fread(&(code_units->code[i]), 1, 1, in);
-            if (code_units->code[i] >= 0x80)
+            if (code_units->code[i] >= 0x80 && code_units->code[1] <= 0xBF)
                 count++;
         }
         if (count == 3)
