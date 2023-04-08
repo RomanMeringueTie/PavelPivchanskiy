@@ -14,7 +14,7 @@ int encode(uint32_t code_point, CodeUnits *code_units)
     else if (code_point < 0x800)
     {
         code_units->length = 2;
-        code_units->code[0] = 0xc0 | code_point >> 6;
+        code_units->code[0] = 0xc0 | (code_point >> 6);
         code_units->code[1] = 0x80 | (code_point & 0x3f);
     }
     else if (code_point < 0x10000)
@@ -24,7 +24,7 @@ int encode(uint32_t code_point, CodeUnits *code_units)
         code_units->code[1] = 0x80 | ((code_point >> 6) & 0x3f);
         code_units->code[2] = 0x80 | (code_point & 0x3f);
     }
-    else if (code_point < 0x100000)
+    else if (code_point < 0x200000)
     {
         code_units->length = 4;
         code_units->code[0] = 0xf0 | (code_point >> 18);
@@ -39,14 +39,22 @@ int encode(uint32_t code_point, CodeUnits *code_units)
 
 uint32_t decode(const CodeUnits *code_unit)
 {
-    uint32_t value;
-    if (code_unit->length == 1)
+    uint32_t value = 0;
+    if (code_unit->code[0] < 0x80)
     {
         value = code_unit->code[0];
     }
-    else if (code_unit->length == 2)
+    else if (code_unit->code[0] < 0xE0)
     {
-        value = code_unit->code[0];
+        value = ((code_unit->code[0] & 0x1f) << 6) | (code_unit->code[1] & 0x3f);
+    }
+    else if (code_unit->code[0] < 0xF0)
+    {
+        value = ((code_unit->code[0] & 0x0f) << 12) | ((code_unit->code[1] & 0x3f) << 6) | (code_unit->code[2] & 0x3f);
+    }
+    else if (code_unit->code[0] < 0xF8)
+    {
+        value = ((code_unit->code[0] & 0x07) << 18) | ((code_unit->code[1] & 0x3f) << 12) | ((code_unit->code[2] & 0x3f) << 6) | (code_unit->code[3] & 0x3f);
     }
     else
         return -1;
@@ -55,6 +63,64 @@ uint32_t decode(const CodeUnits *code_unit)
 
 int read_next_code_unit(FILE *in, CodeUnits *code_units)
 {
+
+    fread(&(code_units->code[0]), 1, 1, in);
+    if (code_units->code[0] < 0x80)
+    {
+        code_units->length = 1;
+        printf("len = %ld\n", code_units->length);
+        return 0;
+    }
+    else if (code_units->code[0] < 0xE0)
+    {
+        code_units->length = 2;
+        fread(&(code_units->code[1]), 1, 1, in);
+        if (code_units->code[1] >= 0x80)
+        {
+            printf("len = %ld\n", code_units->length);
+            return 0;
+        }
+        else
+            return -1;
+    }
+    else if (code_units->code[0] < 0xF0)
+    {
+        int count = 0;
+        code_units->length = 3;
+        for (int i = 1; i < 3; i++)
+        {
+            fread(&(code_units->code[i]), 1, 1, in);
+            if (code_units->code[i] >= 0x80)
+                count++;
+        }
+        if (count == 2)
+        {
+            printf("len = %ld\n", code_units->length);
+            return 0;
+        }
+        else
+            return -1;
+    }
+    else if (code_units->code[0] < 0xF8)
+    {
+        int count = 0;
+        code_units->length = 4;
+        for (int i = 1; i < 4; i++)
+        {
+            fread(&(code_units->code[i]), 1, 1, in);
+            if (code_units->code[i] >= 0x80)
+                count++;
+        }
+        if (count == 3)
+        {
+            printf("len = %ld\n", code_units->length);
+            return 0;
+        }
+        else
+            return -1;
+    }
+    else
+        return -1;
     return 0;
 }
 
